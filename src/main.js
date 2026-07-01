@@ -279,17 +279,20 @@ function hoverPick(cx, cy) {
 }
 
 // Legend
+// Legend
 function buildLegend() {
   const legend = document.getElementById('legend');
-  legend.innerHTML = '';
+  const legendDrawer = document.getElementById('legendDrawer');
+  
+  if (legend) legend.innerHTML = '';
+  if (legendDrawer) legendDrawer.innerHTML = '';
+  
   parts.forEach((p, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'chip'; chip.dataset.i = i;
     const c = p.def.color;
     const hex = 'rgb(' + (c[0]*255|0) + ',' + (c[1]*255|0) + ',' + (c[2]*255|0) + ')';
-    chip.innerHTML = '<span class="dot" style="background:' + hex + '; color:' + hex + '"></span>' + p.def.name;
+    const content = '<span class="dot" style="background:' + hex + '; color:' + hex + '"></span>' + p.def.name;
     
-    chip.addEventListener('click', () => {
+    const clickHandler = () => {
       p.target = p.target > 0.5 ? 0 : 1;
       syncChips();
       const activeParts = parts.filter(pt => pt.target > 0.5);
@@ -302,21 +305,59 @@ function buildLegend() {
       } else {
         updateDashboard(null);
       }
-    });
+    };
     
-    chip.addEventListener('mouseenter', () => { p.hoverT = 1; });
-    chip.addEventListener('mouseleave', () => { p.hoverT = 0; });
-    legend.appendChild(chip);
+    const mouseEnterHandler = () => { p.hoverT = 1; };
+    const mouseLeaveHandler = () => { p.hoverT = 0; };
+    
+    // Desktop chip
+    if (legend) {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.i = i;
+      chip.innerHTML = content;
+      chip.addEventListener('click', clickHandler);
+      chip.addEventListener('mouseenter', mouseEnterHandler);
+      chip.addEventListener('mouseleave', mouseLeaveHandler);
+      legend.appendChild(chip);
+    }
+    
+    // Drawer chip
+    if (legendDrawer) {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.i = i;
+      chip.innerHTML = content;
+      chip.addEventListener('click', clickHandler);
+      chip.addEventListener('mouseenter', mouseEnterHandler);
+      chip.addEventListener('mouseleave', mouseLeaveHandler);
+      legendDrawer.appendChild(chip);
+    }
   });
+  
   syncChips();
 }
 
 function syncChips() {
   const legend = document.getElementById('legend');
-  [...legend.children].forEach(ch => {
-    ch.dataset.on = parts[+ch.dataset.i].target > 0.5 ? 'true' : 'false';
-  });
-  document.getElementById('explodeBtn').dataset.on = parts.every(p => p.target > 0.5) ? 'true' : 'false';
+  const legendDrawer = document.getElementById('legendDrawer');
+  
+  const syncList = (listEl) => {
+    if (listEl) {
+      [...listEl.children].forEach(ch => {
+        ch.dataset.on = parts[+ch.dataset.i].target > 0.5 ? 'true' : 'false';
+      });
+    }
+  };
+  
+  syncList(legend);
+  syncList(legendDrawer);
+  
+  const allOn = parts.every(p => p.target > 0.5);
+  const explodeBtn = document.getElementById('explodeBtn');
+  const explodeBtnDrawer = document.getElementById('explodeBtnDrawer');
+  if (explodeBtn) explodeBtn.dataset.on = allOn ? 'true' : 'false';
+  if (explodeBtnDrawer) explodeBtnDrawer.dataset.on = allOn ? 'true' : 'false';
 }
 
 // Specification specs updating
@@ -457,30 +498,51 @@ function updateDashboard(partMode) {
   }
 }
 
-// Button Bindings
-const rotBtn = document.getElementById('rotBtn');
-const explodeBtn = document.getElementById('explodeBtn');
-const resetBtn = document.getElementById('resetBtn');
-const toggleColorBtn = document.getElementById('toggleColorBtn');
+// Button Bindings (Synced Dual Layout Controllers)
+function bindButton(desktopId, drawerId, onClick) {
+  const btn1 = document.getElementById(desktopId);
+  const btn2 = document.getElementById(drawerId);
+  
+  const handler = (e) => {
+    e.preventDefault();
+    onClick(e.currentTarget);
+    if (btn1 && btn2) {
+      btn1.dataset.on = e.currentTarget.dataset.on;
+      btn2.dataset.on = e.currentTarget.dataset.on;
+      btn1.textContent = e.currentTarget.textContent;
+      btn2.textContent = e.currentTarget.textContent;
+    }
+  };
+  
+  if (btn1) btn1.addEventListener('click', handler);
+  if (btn2) btn2.addEventListener('click', handler);
+}
 
-rotBtn.addEventListener('click', () => { autoRotate = !autoRotate; rotBtn.dataset.on = autoRotate ? 'true' : 'false'; });
-explodeBtn.addEventListener('click', () => {
+bindButton('rotBtn', 'rotBtnDrawer', (clickedEl) => {
+  autoRotate = !autoRotate;
+  clickedEl.dataset.on = autoRotate ? 'true' : 'false';
+});
+
+bindButton('explodeBtn', 'explodeBtnDrawer', (clickedEl) => {
   const allOn = parts.every(p => p.target > 0.5);
   parts.forEach(p => p.target = allOn ? 0 : 1);
   syncChips();
   updateDashboard(allOn ? null : 'all');
 });
-resetBtn.addEventListener('click', () => {
-  parts.forEach(p => p.target = 0); syncChips();
-  st.theta = 2.35; st.phi = 1.12;
+
+bindButton('resetBtn', 'resetBtnDrawer', (clickedEl) => {
+  parts.forEach(p => p.target = 0);
+  syncChips();
+  st.theta = 2.35;
+  st.phi = 1.12;
   st.radius = Math.max(modelSize.x, modelSize.y, modelSize.z) * 1.6;
   updateDashboard(null);
 });
 
-toggleColorBtn.addEventListener('click', () => {
+bindButton('toggleColorBtn', 'toggleColorBtnDrawer', (clickedEl) => {
   colorMode = colorMode === 'livery' ? 'segmented' : 'livery';
-  toggleColorBtn.dataset.on = colorMode === 'segmented' ? 'true' : 'false';
-  toggleColorBtn.textContent = colorMode === 'segmented' ? 'Segmented Mode' : 'Livery Mode';
+  clickedEl.dataset.on = colorMode === 'segmented' ? 'true' : 'false';
+  clickedEl.textContent = colorMode === 'segmented' ? 'Segmented Mode' : 'Livery Mode';
   
   parts.forEach(p => {
     const geo = p.points.geometry;
@@ -490,21 +552,44 @@ toggleColorBtn.addEventListener('click', () => {
   });
 });
 
-const densityInput = document.getElementById('density');
-if (densityInput) {
-  densityInput.addEventListener('input', e => {
-    densityFraction = parseFloat(e.target.value) / 100;
-    const opacity = 0.28 + 0.72 * densityFraction;
-    
-    const ptsValue = document.getElementById('ptsValue');
-    if (ptsValue && document.getElementById('ptsLabel').textContent === "Cloud Density") {
-      ptsValue.innerHTML = (densityFraction * (totalPointsTarget / 1000000)).toFixed(2) + '<span class="unit">M PTS</span>';
-    }
-    
-    parts.forEach(p => {
-      p.mat.opacity = opacity;
-      p.mat.needsUpdate = true;
-    });
+// Dual Density Sliders sync
+const density1 = document.getElementById('density');
+const density2 = document.getElementById('densityDrawer');
+
+function handleDensityInput(val) {
+  densityFraction = val / 100;
+  const opacity = 0.28 + 0.72 * densityFraction;
+  
+  if (density1) density1.value = val;
+  if (density2) density2.value = val;
+  
+  const ptsValue = document.getElementById('ptsValue');
+  if (ptsValue && document.getElementById('ptsLabel').textContent === "Cloud Density") {
+    ptsValue.innerHTML = (densityFraction * (totalPointsTarget / 1000000)).toFixed(2) + '<span class="unit">M PTS</span>';
+  }
+  
+  parts.forEach(p => {
+    p.mat.opacity = opacity;
+    p.mat.needsUpdate = true;
+  });
+}
+
+if (density1) density1.addEventListener('input', e => handleDensityInput(parseFloat(e.target.value)));
+if (density2) density2.addEventListener('input', e => handleDensityInput(parseFloat(e.target.value)));
+
+// Hamburger Nav Drawer open/close
+const menuBtn = document.getElementById('menuBtn');
+const closeBtn = document.getElementById('closeBtn');
+const navDrawer = document.getElementById('navDrawer');
+
+if (menuBtn && navDrawer) {
+  menuBtn.addEventListener('click', () => {
+    navDrawer.classList.add('open');
+  });
+}
+if (closeBtn && navDrawer) {
+  closeBtn.addEventListener('click', () => {
+    navDrawer.classList.remove('open');
   });
 }
 

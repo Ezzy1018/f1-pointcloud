@@ -212,6 +212,218 @@
     50% { transform: rotate(90deg); }
     100% { transform: rotate(90deg); }
   }
+  /* Menu Trigger Button */
+  .menu-btn {
+    display: none;
+    position: fixed;
+    top: 26px;
+    right: 28px;
+    z-index: 99;
+    appearance: none;
+    outline: none;
+    border: 1px solid var(--line);
+    background: rgba(10, 14, 22, 0.8);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .menu-btn:hover {
+    border-color: var(--accent);
+    background: rgba(95, 208, 255, 0.1);
+  }
+
+  /* Nav Drawer Panel */
+  .nav-drawer {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 280px;
+    height: 100vh;
+    box-sizing: border-box;
+    background: rgba(10, 14, 22, 0.95);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 105;
+    padding: 24px 20px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: -10px 0 35px rgba(0,0,0,0.5);
+  }
+  .nav-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .drawer-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .close-btn {
+    appearance: none;
+    border: none;
+    background: none;
+    color: #7f858e;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .close-btn:hover { color: #fff; }
+
+  .drawer-section {
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer-section-title {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7f858e;
+    margin-bottom: 10px;
+  }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .drawer-btn {
+    appearance: none;
+    outline: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 550;
+    padding: 10px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .drawer-btn:hover {
+    border-color: var(--accent);
+    background: rgba(95, 208, 255, 0.08);
+  }
+  .drawer-btn[data-on="true"] {
+    background: rgba(95, 208, 255, 0.15);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* Responsive styling overrides for Mobile viewports (width < 960px or height < 500px) */
+  @media (max-width: 959px) or (max-height: 500px) {
+    .ui.top-right {
+      display: none !important;
+    }
+    .legend {
+      display: none !important;
+    }
+    .menu-btn {
+      display: flex;
+    }
+    
+    #hud {
+      top: auto;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 14, 22, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 12px 24px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+    }
+    .hud-brand {
+      display: none !important;
+    }
+    .hud-identity {
+      order: -1;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    .hud-slider {
+      display: none !important;
+    }
+    
+    .hud-block {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 0;
+    }
+    .hud-block .eyebrow {
+      display: none !important;
+    }
+    .stat {
+      margin-bottom: 0;
+    }
+    .stat-value {
+      font-size: 24px;
+    }
+    .stat-value .unit {
+      font-size: 11px;
+    }
+    .stat-label {
+      margin-top: 2px;
+      font-size: 8.5px;
+    }
+    .stat-row {
+      display: flex;
+      gap: 22px;
+      margin-bottom: 0;
+    }
+    .stat-row .stat-value {
+      font-size: 20px;
+    }
+    
+    .ui.bottom-left {
+      display: none !important;
+    }
+  }
+
+  /* Safe Area bounds support for iPhone notch */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    @media (max-width: 959px) or (max-height: 500px) {
+      #hud {
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
+        padding-left: calc(24px + env(safe-area-inset-left));
+        padding-right: calc(24px + env(safe-area-inset-right));
+      }
+    }
+  }
+
   @media (max-width: 767px) and (orientation: portrait) {
     .portrait-notice {
       display: flex;
@@ -281,6 +493,39 @@
     <div class="loader__pct"><span id="loaderPct">0</span><i>%</i></div>
     <div class="loader__bar"><span id="loaderBar" style="width: 0%"></span></div>
     <button id="enterBtn" class="loader__enter">Enter</button>
+  </div>
+
+  <button class="menu-btn" id="menuBtn">
+    <span class="icon">☰</span> Controls
+  </button>
+
+  <div class="nav-drawer" id="navDrawer">
+    <div class="drawer-header">
+      <span class="drawer-title">Controls & Index</span>
+      <button class="close-btn" id="closeBtn">✕</button>
+    </div>
+    
+    <div class="drawer-section">
+      <div class="drawer-section-title">Visual Actions</div>
+      <div class="controls-grid">
+        <button class="drawer-btn" id="toggleColorBtnDrawer" data-on="false">Livery Mode</button>
+        <button class="drawer-btn" id="rotBtnDrawer" data-on="true">Auto-rotate</button>
+        <button class="drawer-btn" id="explodeBtnDrawer" data-on="false">Explode all</button>
+        <button class="drawer-btn" id="resetBtnDrawer">Reset view</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Cloud Density</div>
+      <div class="hud-slider" style="margin: 10px 0;">
+        <input id="densityDrawer" type="range" min="0" max="100" value="100" style="width: 100%;">
+      </div>
+    </div>
+
+    <div class="drawer-section" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+      <div class="drawer-section-title">Component Index</div>
+      <div class="drawer-legend" id="legendDrawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding-right: 4px;"></div>
+    </div>
   </div>
 
   <div class="portrait-notice">

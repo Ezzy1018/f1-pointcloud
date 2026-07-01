@@ -15,7 +15,6 @@ let dragging = false;
 let lastX = 0, lastY = 0, downX = 0, downY = 0, downT = 0, moved = false;
 
 let colorMode = 'livery'; // 'livery' or 'segmented'
-let densityFraction = 1.0;
 let loadedData = null;
 let modelLoaded = false;
 let loaderStart = performance.now();
@@ -91,6 +90,10 @@ function buildModel(data) {
   st.phi = 1.12;
   st.theta = 2.35;
   
+  const densitySlider = document.getElementById('density');
+  const sliderVal = densitySlider ? parseFloat(densitySlider.value) : 100;
+  const initialOpacity = 0.2 + (sliderVal / 100) * 0.8;
+  
   data.parts.forEach(pData => {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pData.positions, 3));
@@ -99,17 +102,17 @@ function buildModel(data) {
     geo.setAttribute('color', new THREE.BufferAttribute(activeColors, 3));
     geo.computeBoundingSphere();
     
-    const sliderVal = document.getElementById('density') ? parseFloat(document.getElementById('density').value) : 100;
     const mat = new THREE.PointsMaterial({
       size: currentPointSize,
       sizeAttenuation: true,
       vertexColors: true,
       map: circleTexture,
       transparent: true,
-      opacity: 0.28 + 0.72 * (sliderVal / 100),
-      depthWrite: false,
+      depthWrite: true,
       depthTest: true,
-      blending: THREE.NormalBlending
+      alphaTest: 0.1,
+      blending: THREE.NormalBlending,
+      opacity: initialOpacity
     });
     
     const points = new THREE.Points(geo, mat);
@@ -397,67 +400,46 @@ const PART_SPECS = {
   }
 };
 
-const hudStatTitleEl = document.getElementById('hudStatTitle');
 const ptsValueEl = document.getElementById('ptsValue');
 const ptsLabelEl = document.getElementById('ptsLabel');
 const dragValueEl = document.getElementById('dragValue');
 const dfValueEl = document.getElementById('dfValue');
-const dfLabelEl = document.getElementById('dfLabel');
-const hudColorMarkerEl = document.getElementById('hudColorMarker');
-const hudPartNameEl = document.getElementById('hudPartName');
-const hudPartSubEl = document.getElementById('hudPartSub');
+const hudIdNameEl = document.getElementById('hudIdName');
+const hudIdSubEl = document.getElementById('hudIdSub');
 
 function updateDashboard(partMode) {
-  if (!hudPartNameEl) return;
+  if (!ptsValueEl) return;
   
   if (partMode === 'all') {
-    if (hudStatTitleEl) hudStatTitleEl.textContent = 'Assembly Telemetry';
-    if (ptsValueEl) ptsValueEl.innerHTML = (totalPointsTarget / 1000000).toFixed(2) + '<span class="unit">M PTS</span>';
-    if (ptsLabelEl) ptsLabelEl.textContent = 'Total Cloud Density';
-    
-    if (dragValueEl) dragValueEl.innerHTML = '1.45<span class="unit">Cd</span>';
-    if (dfValueEl) dfValueEl.innerHTML = '8,500<span class="unit">N</span>';
-    if (dfLabelEl) dfLabelEl.textContent = 'Downforce (Drag Mode)';
-    
-    if (hudColorMarkerEl) hudColorMarkerEl.style.borderColor = '#ff9f43';
-    hudPartNameEl.textContent = 'TEARDOWN BLUEPRINT';
-    hudPartSubEl.textContent = 'Exploded Layout · All Parts Active';
+    ptsValueEl.innerHTML = '1.04<span class="unit">M PTS</span>';
+    ptsLabelEl.textContent = 'Cloud Density';
+    dragValueEl.innerHTML = '1.45<span class="unit">Cd</span>';
+    dfValueEl.innerHTML = '12,450<span class="unit">N</span>';
+    hudIdNameEl.textContent = 'EXPLODED BLUEPRINT';
+    hudIdSubEl.textContent = 'Multi-assembly dissection view';
   } else if (partMode && partMode.def) {
     const p = partMode;
-    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: 'No details available', df: 'N/A', drag: 'N/A', mat: 'N/A', temp: 'N/A' };
+    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: '', df: 'N/A', drag: 'N/A', mat: 'N/A', temp: 'N/A' };
     
-    if (hudStatTitleEl) hudStatTitleEl.textContent = 'Component Telemetry';
+    const numPts = (p.points.geometry.attributes.position.count / 1000).toFixed(0);
+    ptsValueEl.innerHTML = numPts + '<span class="unit">K PTS</span>';
+    ptsLabelEl.textContent = 'Component Points';
     
-    const ptCount = p.points.geometry.attributes.position.count;
-    if (ptsValueEl) ptsValueEl.innerHTML = (ptCount / 1000).toFixed(1) + '<span class="unit">K PTS</span>';
-    if (ptsLabelEl) ptsLabelEl.textContent = 'Component Density';
+    const dragStr = spec.drag.replace('Cd ', '');
+    dragValueEl.innerHTML = dragStr + '<span class="unit">Cd</span>';
     
-    if (dragValueEl) dragValueEl.innerHTML = spec.drag.replace('Cd ', '').replace('Cd', '') + '<span class="unit">Cd</span>';
+    const dfStr = spec.df.replace(' Total', '').replace(' Under', '').replace(' Front', '').replace(' Rear', '');
+    dfValueEl.innerHTML = dfStr;
     
-    let dfStr = spec.df.split(' ')[0];
-    if (!dfStr.includes('%') && !dfStr.includes('-')) {
-      dfStr = '2%';
-    }
-    if (dfValueEl) dfValueEl.innerHTML = dfStr + '<span class="unit">DF</span>';
-    if (dfLabelEl) dfLabelEl.textContent = 'DF Contribution';
-    
-    const rgbStr = 'rgb(' + (p.def.color[0]*255|0) + ',' + (p.def.color[1]*255|0) + ',' + (p.def.color[2]*255|0) + ')';
-    if (hudColorMarkerEl) hudColorMarkerEl.style.borderColor = rgbStr;
-    
-    hudPartNameEl.textContent = p.def.name.toUpperCase();
-    hudPartSubEl.textContent = spec.cat.replace('&amp;middot;', '·').replace('&middot;', '·');
+    hudIdNameEl.textContent = p.def.name.toUpperCase();
+    hudIdSubEl.textContent = spec.cat;
   } else {
-    if (hudStatTitleEl) hudStatTitleEl.textContent = 'Big Numbers';
-    if (ptsValueEl) ptsValueEl.innerHTML = (totalPointsTarget / 1000000).toFixed(2) + '<span class="unit">M PTS</span>';
-    if (ptsLabelEl) ptsLabelEl.textContent = 'Cloud Density';
-    
-    if (dragValueEl) dragValueEl.innerHTML = '0.82<span class="unit">Cd</span>';
-    if (dfValueEl) dfValueEl.innerHTML = '12,450<span class="unit">N</span>';
-    if (dfLabelEl) dfLabelEl.textContent = 'Downforce';
-    
-    if (hudColorMarkerEl) hudColorMarkerEl.style.borderColor = '#fff';
-    hudPartNameEl.textContent = 'RED BULL RB20';
-    hudPartSubEl.textContent = '2024 Season · Surface-Sampled';
+    ptsValueEl.innerHTML = '1.04<span class="unit">M PTS</span>';
+    ptsLabelEl.textContent = 'Cloud Density';
+    dragValueEl.innerHTML = '0.82<span class="unit">Cd</span>';
+    dfValueEl.innerHTML = '12,450<span class="unit">N</span>';
+    hudIdNameEl.textContent = 'RED BULL RB20';
+    hudIdSubEl.textContent = '2024 Season · Surface-Sampled';
   }
 }
 
@@ -497,15 +479,10 @@ toggleColorBtn.addEventListener('click', () => {
 const densitySlider = document.getElementById('density');
 if (densitySlider) {
   densitySlider.addEventListener('input', e => {
-    const t = parseFloat(e.target.value) / 100;
-    const opacity = 0.28 + 0.72 * t;
-    
+    const val = parseFloat(e.target.value);
+    const opacity = 0.2 + (val / 100) * 0.8;
     parts.forEach(p => {
-      p.mat.transparent = true;
       p.mat.opacity = opacity;
-      p.mat.depthWrite = false;
-      p.mat.blending = THREE.NormalBlending;
-      p.mat.needsUpdate = true;
     });
   });
 }
@@ -615,17 +592,22 @@ function updateLoader() {
   
   if (progress === 100 && modelLoaded) {
     loaderComplete = true;
-    
     if (loaderBar) loaderBar.style.width = '100%';
     if (loaderPct) loaderPct.textContent = '100';
     
     setTimeout(() => {
-      if (loaderBar) loaderBar.parentElement.style.opacity = '0';
-      if (loaderPct) loaderPct.parentElement.style.opacity = '0';
+      if (loaderBar) {
+        loaderBar.parentElement.style.transition = 'opacity 0.4s ease';
+        loaderBar.parentElement.style.opacity = '0';
+      }
+      if (loaderPct) {
+        loaderPct.parentElement.style.transition = 'opacity 0.4s ease';
+        loaderPct.parentElement.style.opacity = '0';
+      }
       
       setTimeout(() => {
         if (enterBtn) enterBtn.classList.add('show');
-      }, 300);
+      }, 400);
     }, 450);
   } else {
     requestAnimationFrame(updateLoader);

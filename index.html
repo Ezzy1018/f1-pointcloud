@@ -38,6 +38,7 @@
   .chip[data-on="true"]{background:rgba(255,255,255,.06); border-color:var(--line); color:#fff;}
   .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 10px currentColor;}
   
+  /* Minimal HUD Styling */
   #hud{ position:fixed; top:36px; left:40px; z-index:10; width:270px;
     font-family:"Inter",system-ui,sans-serif; color:#fff; user-select:none; }
 
@@ -68,7 +69,7 @@
   .hud-identity{ display:flex; align-items:center; gap:12px; margin-top:28px;
     padding-top:20px; border-top:1px solid rgba(255,255,255,.08); }
   .hud-identity .marker{ width:16px; height:16px; border-radius:50%;
-    border:2px solid #fff; box-shadow:0 0 0 3px rgba(255,255,255,.06); flex:0 0 auto; transition: border-color 0.25s ease; }
+    border:2px solid #fff; box-shadow:0 0 0 3px rgba(255,255,255,.06); flex:0 0 auto }
   .id-name{ font-size:12px; font-weight:600; letter-spacing:.08em }
   .id-sub{ font-size:10.5px; color:#7f858e; margin-top:3px }
   
@@ -191,9 +192,9 @@
     </header>
 
     <section class="hud-block">
-      <div class="eyebrow" id="hudStatTitle">Big Numbers</div>
+      <div class="eyebrow">Big Numbers</div>
       <div class="stat">
-        <div class="stat-value" id="ptsValue">1.00<span class="unit">M PTS</span></div>
+        <div class="stat-value" id="ptsValue">1.04<span class="unit">M PTS</span></div>
         <div class="stat-label" id="ptsLabel">Cloud Density</div>
       </div>
       <div class="stat-row">
@@ -203,7 +204,7 @@
         </div>
         <div class="stat">
           <div class="stat-value" id="dfValue">12,450<span class="unit">N</span></div>
-          <div class="stat-label" id="dfLabel">Downforce</div>
+          <div class="stat-label">Downforce</div>
         </div>
       </div>
     </section>
@@ -214,10 +215,10 @@
     </div>
 
     <section class="hud-identity">
-      <span class="marker" id="hudColorMarker"></span>
+      <span class="marker"></span>
       <div>
-        <div class="id-name" id="hudPartName">RED BULL RB20</div>
-        <div class="id-sub" id="hudPartSub">2024 Season · Surface-Sampled</div>
+        <div class="id-name" id="hudIdName">RED BULL RB20</div>
+        <div class="id-sub" id="hudIdSub">2024 Season · Surface-Sampled</div>
       </div>
     </section>
   </div>

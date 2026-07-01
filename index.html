@@ -178,40 +178,7 @@
     .bottom-left{display:none;}
   }
 
-  .portrait-notice {
-    display: none;
-    position: fixed;
-    bottom: 26px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 15;
-    background: rgba(10, 14, 22, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 10px 18px;
-    border-radius: 99px;
-    font-size: 11px;
-    color: #cbd5ea;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-    font-weight: 550;
-  }
-  .portrait-notice .icon {
-    font-size: 14px;
-    color: var(--accent);
-    animation: rotate-tip 2s ease-in-out infinite;
-    display: inline-block;
-  }
-  @keyframes rotate-tip {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(90deg); }
-    100% { transform: rotate(90deg); }
-  }
+
   /* Menu Trigger Button */
   .menu-btn {
     display: none;
@@ -261,6 +228,8 @@
     gap: 22px;
     transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     box-shadow: -10px 0 35px rgba(0,0,0,0.5);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .nav-drawer.open {
     right: 0;
@@ -386,20 +355,19 @@
     color: #fff;
   }
 
-  /* Shift portrait-notice to the upper screen area to avoid overlaps */
+  /* Position portrait-notice at the bottom-right on mobile portrait views */
   .portrait-notice {
     display: none;
     position: fixed;
-    top: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 15;
-    background: rgba(10, 14, 22, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    bottom: 26px;
+    right: 28px;
+    z-index: 99;
+    background: rgba(10, 14, 22, 0.8);
+    border: 1px solid var(--line);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 10px 18px;
-    border-radius: 99px;
+    border-radius: 999px;
     font-size: 11px;
     color: #cbd5ea;
     letter-spacing: 0.06em;
@@ -600,9 +568,9 @@
       </div>
     </div>
 
-    <div class="drawer-section" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+    <div class="drawer-section" style="display: flex; flex-direction: column;">
       <div class="drawer-section-title">Component Index</div>
-      <div class="drawer-legend" id="legendDrawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding-right: 4px;"></div>
+      <div class="drawer-legend" id="legendDrawer" style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding-right: 4px;"></div>
     </div>
   </div>
 

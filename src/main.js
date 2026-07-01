@@ -220,7 +220,19 @@ canvas.addEventListener('pointerdown', e => {
 });
 
 canvas.addEventListener('pointermove', e => {
-  if (!activePointers.has(e.pointerId)) return;
+  if (e.pointerType === 'touch') {
+    // Disable hover tooltips on mobile to prevent overlay collisions
+    hoverEl.style.opacity = '0';
+  }
+
+  // If pointer is not down, it's a hover action (desktop mouse only)
+  if (!activePointers.has(e.pointerId)) {
+    if (e.pointerType === 'mouse') {
+      hoverPick(e.clientX, e.clientY);
+    }
+    return;
+  }
+  
   activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   
   if (activePointers.size === 1 && dragging) {
@@ -238,8 +250,6 @@ canvas.addEventListener('pointermove', e => {
       const scale = initialPinchDist / newDist;
       st.radius = Math.max(modelSize.z * 0.6, Math.min(modelSize.z * 3.5, initialRadius * scale));
     }
-  } else if (activePointers.size === 0) {
-    hoverPick(e.clientX, e.clientY);
   }
 });
 

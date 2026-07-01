@@ -26,8 +26,8 @@ let loaderComplete = false;
 let frameCount = 0;
 let startTime = 0;
 let hasProbed = false;
-let totalPointsTarget = 1000000;
-let currentPointSize = 0.06;
+let totalPointsTarget = 1400000;
+let currentPointSize = 0.04;
 
 // Canvas texture for glowing particles
 function createCircleTexture() {
@@ -104,19 +104,16 @@ function buildModel(data) {
       sizeAttenuation: true,
       vertexColors: true,
       map: circleTexture,
-      transparent: false,
+      transparent: true,
+      opacity: 0.28 + 0.72 * densityFraction,
       depthWrite: true,
       depthTest: true,
-      alphaTest: 0.5,
+      alphaTest: 0.05,
       blending: THREE.NormalBlending
     });
     
     const points = new THREE.Points(geo, mat);
     points.frustumCulled = false;
-    
-    const count = pData.positions.length / 3;
-    geo.setDrawRange(0, Math.floor(count * densityFraction));
-    
     scene.add(points);
     
     parts.push({
@@ -400,45 +397,67 @@ const PART_SPECS = {
   }
 };
 
-const specNameEl = document.getElementById('specName');
-const specCatEl = document.getElementById('specCat');
-const specDescEl = document.getElementById('specDesc');
-const valDfEl = document.getElementById('valDf');
-const valDragEl = document.getElementById('valDrag');
-const valMatEl = document.getElementById('valMat');
-const valTempEl = document.getElementById('valTemp');
+const hudEyebrow = document.getElementById('hudEyebrow');
+const ptsValue = document.getElementById('ptsValue');
+const ptsLabel = document.getElementById('ptsLabel');
+const valDrag = document.getElementById('valDrag');
+const valDf = document.getElementById('valDf');
+const hudMarker = document.getElementById('hudMarker');
+const hudName = document.getElementById('hudName');
+const hudSub = document.getElementById('hudSub');
 
 function updateDashboard(partMode) {
+  if (!hudEyebrow) return;
+  
   if (partMode === 'all') {
-    specNameEl.textContent = 'Teardown Blueprint';
-    specCatEl.textContent = 'Mode: Full Assembly Exploded';
-    specCatEl.style.color = '#ff9f43';
-    specDescEl.textContent = 'All major aerodynamic, structural, power-unit, and wheel assemblies are exploded outward to show internal packaging and chassis design.';
-    valDfEl.textContent = 'Exploded';
-    valDragEl.textContent = 'Cd 1.45';
-    valMatEl.textContent = 'Multi-material';
-    valTempEl.textContent = 'Diag Active';
+    hudEyebrow.textContent = 'Teardown Blueprint';
+    ptsValue.innerHTML = '1.40<span class="unit">M PTS</span>';
+    ptsLabel.textContent = 'Cloud Density';
+    valDrag.innerHTML = '1.45<span class="unit">Cd</span>';
+    valDf.innerHTML = 'Exploded<span class="unit">DF</span>';
+    
+    hudMarker.style.borderColor = '#ff9f43';
+    hudMarker.style.boxShadow = '0 0 10px #ff9f43';
+    
+    hudName.textContent = 'FULL VEHICLE EXPLODED';
+    hudSub.textContent = 'Multi-assembly Structural Layout';
   } else if (partMode && partMode.def) {
     const p = partMode;
-    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: 'No details available', df: 'N/A', drag: 'N/A', mat: 'N/A', temp: 'N/A' };
-    specNameEl.textContent = p.def.name;
-    specCatEl.textContent = spec.cat;
-    const rgbStr = 'rgb(' + (p.def.color[0]*255|0) + ',' + (p.def.color[1]*255|0) + ',' + (p.def.color[2]*255|0) + ')';
-    specCatEl.style.color = rgbStr;
-    specDescEl.textContent = spec.desc;
-    valDfEl.textContent = spec.df;
-    valDragEl.textContent = spec.drag;
-    valMatEl.textContent = spec.mat;
-    valTempEl.textContent = spec.temp;
+    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: 'No details available', df: 'N/A', drag: 'N/A' };
+    
+    hudEyebrow.textContent = 'Teardown Segment';
+    
+    const count = p.points.geometry.attributes.position.count;
+    const kPts = (count / 1000).toFixed(0);
+    ptsValue.innerHTML = kPts + '<span class="unit">K PTS</span>';
+    ptsLabel.textContent = p.def.name.toUpperCase() + ' POINTS';
+    
+    const dragVal = spec.drag.replace('Cd ', '');
+    valDrag.innerHTML = dragVal + '<span class="unit">Cd</span>';
+    
+    const dfVal = spec.df.replace(' DF', '').replace(' Total', '').replace(' Front', '').replace(' Rear', '').replace(' Under', '');
+    valDf.innerHTML = dfVal + '<span class="unit">DF</span>';
+    
+    const rgb = 'rgb(' + (p.def.color[0]*255|0) + ',' + (p.def.color[1]*255|0) + ',' + (p.def.color[2]*255|0) + ')';
+    hudMarker.style.borderColor = rgb;
+    hudMarker.style.boxShadow = '0 0 10px ' + rgb;
+    
+    hudName.textContent = p.def.name.toUpperCase();
+    hudSub.textContent = spec.cat.replace('&amp;', '&').replace('&middot;', '·');
   } else {
-    specNameEl.textContent = 'RB20 Prototype';
-    specCatEl.textContent = 'System Status: Active';
-    specCatEl.style.color = 'var(--accent)';
-    specDescEl.textContent = 'Select any component on the car or from the legend to inspect its telemetry, aerodynamic contribution, and engineering specifications.';
-    valDfEl.textContent = '100% Assembled';
-    valDragEl.textContent = 'Cd 0.82';
-    valMatEl.textContent = 'Carbon Prepreg';
-    valTempEl.textContent = 'Telemetry OK';
+    hudEyebrow.textContent = 'Big Numbers';
+    
+    const totalM = (densityFraction * (totalPointsTarget / 1000000)).toFixed(2);
+    ptsValue.innerHTML = totalM + '<span class="unit">M PTS</span>';
+    ptsLabel.textContent = 'Cloud Density';
+    valDrag.innerHTML = '0.82<span class="unit">Cd</span>';
+    valDf.innerHTML = '12,450<span class="unit">N</span>';
+    
+    hudMarker.style.borderColor = '#fff';
+    hudMarker.style.boxShadow = '0 0 0 3px rgba(255,255,255,.06)';
+    
+    hudName.textContent = 'RED BULL RB20';
+    hudSub.textContent = '2024 Season · Surface-Sampled';
   }
 }
 
@@ -475,14 +494,23 @@ toggleColorBtn.addEventListener('click', () => {
   });
 });
 
-document.getElementById('sizeRange').addEventListener('input', e => {
-  densityFraction = parseFloat(e.target.value);
-  parts.forEach(p => {
-    const geo = p.points.geometry;
-    const count = geo.attributes.position.count;
-    geo.setDrawRange(0, Math.floor(count * densityFraction));
+const densityInput = document.getElementById('density');
+if (densityInput) {
+  densityInput.addEventListener('input', e => {
+    densityFraction = parseFloat(e.target.value) / 100;
+    const opacity = 0.28 + 0.72 * densityFraction;
+    
+    const ptsValue = document.getElementById('ptsValue');
+    if (ptsValue && document.getElementById('ptsLabel').textContent === "Cloud Density") {
+      ptsValue.innerHTML = (densityFraction * (totalPointsTarget / 1000000)).toFixed(2) + '<span class="unit">M PTS</span>';
+    }
+    
+    parts.forEach(p => {
+      p.mat.opacity = opacity;
+      p.mat.needsUpdate = true;
+    });
   });
-});
+}
 
 // Resize
 window.addEventListener('resize', () => {
@@ -548,7 +576,6 @@ function tick() {
       p.mat.color.setRGB(1.0 + p.hoverCur * 0.9, 1.0 + p.hoverCur * 0.9, 1.0 + p.hoverCur * 0.9);
     }
     
-    // FPS Capability Probe
     if (!hasProbed) {
       frameCount++;
       if (frameCount === 30) {
@@ -556,8 +583,8 @@ function tick() {
         const avgFps = 1000 / (elapsed / 30);
         console.log(`FPS Capability Probe result: ${avgFps.toFixed(1)} FPS`);
         if (avgFps < 45) {
-          console.warn("FPS dropped below 45. Optimizing point count to 350k for smooth execution.");
-          rebuildPointCloud(350000, 0.11);
+          console.warn("FPS dropped below 45. Optimizing point count to 600k for smooth execution.");
+          rebuildPointCloud(600000, 0.075);
         }
         hasProbed = true;
       }
@@ -590,7 +617,7 @@ function updateLoader() {
   if (progress === 100 && modelLoaded) {
     loaderComplete = true;
     if (loaderBar) loaderBar.parentElement.style.opacity = '0';
-    if (loaderPct) loaderPct.style.opacity = '0';
+    if (loaderPct) loaderPct.parentElement.style.opacity = '0';
     
     setTimeout(() => {
       if (enterBtn) enterBtn.classList.add('show');

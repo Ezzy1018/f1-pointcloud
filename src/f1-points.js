@@ -204,6 +204,12 @@ export async function loadF1Points(url, opts = {}) {
         if (reader && hasUV) sampler.sample(_p, _n, null, _uv);
         else sampler.sample(_p, _n);
 
+        // Add a subtle per-point positional jitter along normal to break up uniform grid artifacts
+        const jitter = 0.0024 * (Math.random() - 0.5);
+        _p.x += _n.x * jitter;
+        _p.y += _n.y * jitter;
+        _p.z += _n.z * jitter;
+
         posArr.push(_p.x, _p.y, _p.z);
         centroid.add(_p);
 

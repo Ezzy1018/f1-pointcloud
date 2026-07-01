@@ -27,27 +27,24 @@ let frameCount = 0;
 let startTime = 0;
 let hasProbed = false;
 let totalPointsTarget = 1400000;
-let currentPointSize = 0.04;
+let currentPointSize = 0.012;
 
-// Canvas texture for glowing particles
-function createCircleTexture() {
+// Canvas texture for glowing particles (crisp solid dots)
+function makeDotTexture() {
   const size = 64;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-  grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  grad.addColorStop(0.2, 'rgba(255, 255, 255, 0.85)');
-  grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)');
-  grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size*0.44, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
-const circleTexture = createCircleTexture();
+const circleTexture = makeDotTexture();
 
 // Initialize scene
 const canvas = document.getElementById('scene');
@@ -108,7 +105,7 @@ function buildModel(data) {
       opacity: 0.28 + 0.72 * densityFraction,
       depthWrite: true,
       depthTest: true,
-      alphaTest: 0.05,
+      alphaTest: 0.12,
       blending: THREE.NormalBlending
     });
     
@@ -162,16 +159,15 @@ function initGround(radiusLimit) {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.computeBoundingSphere();
-  
-  const m = new THREE.PointsMaterial({
-    size: 0.045,
-    sizeAttenuation: true,
-    vertexColors: true,
-    map: circleTexture,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending
-  });
+    const m = new THREE.PointsMaterial({
+      size: 0.01,
+      sizeAttenuation: true,
+      vertexColors: true,
+      map: circleTexture,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
   
   const p = new THREE.Points(g, m);
   p.frustumCulled = false;
@@ -584,7 +580,7 @@ function tick() {
         console.log(`FPS Capability Probe result: ${avgFps.toFixed(1)} FPS`);
         if (avgFps < 45) {
           console.warn("FPS dropped below 45. Optimizing point count to 600k for smooth execution.");
-          rebuildPointCloud(600000, 0.075);
+          rebuildPointCloud(600000, 0.018);
         }
         hasProbed = true;
       }

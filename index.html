@@ -38,40 +38,36 @@
   .chip[data-on="true"]{background:rgba(255,255,255,.06); border-color:var(--line); color:#fff;}
   .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 10px currentColor;}
   
-  /* Minimal HUD Styling */
-  #hud{ position:fixed; top:36px; left:40px; z-index:10; width:270px;
-    font-family:"Inter",system-ui,sans-serif; color:#fff; user-select:none; }
-
-  .hud-brand{ display:flex; align-items:baseline; gap:8px; padding-bottom:16px;
-    margin-bottom:26px; border-bottom:1px solid rgba(255,255,255,.08); }
-  .hud-brand .mark{ font-size:15px; opacity:.7 }
-  .hud-brand .wordmark{ font-size:18px; font-weight:600; letter-spacing:.02em }
-  .hud-brand .sub{ font-size:11px; color:#7f858e; letter-spacing:.04em; margin-left:auto }
-
-  .eyebrow{ font-size:11px; color:#7f858e; letter-spacing:.14em;
-    text-transform:uppercase; margin-bottom:18px; }
-  .stat{ margin-bottom:22px }
-  .stat-value{ font-size:40px; font-weight:200; line-height:1; letter-spacing:-.01em }
-  .stat-value .unit{ font-size:15px; font-weight:400; margin-left:6px; color:#c4c8ce }
-  .stat-label{ font-size:10.5px; color:#7f858e; letter-spacing:.12em;
-    text-transform:uppercase; margin-top:8px; }
-  .stat-row{ display:flex; gap:34px }
-  .stat-row .stat-value{ font-size:30px }
-
-  .hud-slider{ margin:26px 0 }
-  .hud-slider label{ display:block; font-size:10.5px; color:#7f858e;
-    letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px }
-  .hud-slider input[type=range]{ -webkit-appearance:none; width:100%; height:1px;
-    background:rgba(255,255,255,.18); outline:none }
-  .hud-slider input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none;
-    width:10px; height:10px; border-radius:50%; background:#fff; cursor:pointer; margin-top:-1px }
-
-  .hud-identity{ display:flex; align-items:center; gap:12px; margin-top:28px;
-    padding-top:20px; border-top:1px solid rgba(255,255,255,.08); }
-  .hud-identity .marker{ width:16px; height:16px; border-radius:50%;
-    border:2px solid #fff; box-shadow:0 0 0 3px rgba(255,255,255,.06); flex:0 0 auto }
-  .id-name{ font-size:12px; font-weight:600; letter-spacing:.08em }
-  .id-sub{ font-size:10.5px; color:#7f858e; margin-top:3px }
+  /* Telemetry Dashboard styling */
+  .dashboard-panel{
+    position:fixed; top:26px; left:28px; width:330px; z-index:5;
+    background:rgba(10, 14, 22, 0.72); border:1px solid var(--line); border-radius:16px;
+    padding:22px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    transition:all .3s ease;
+  }
+  .panel-header h1{font-size:24px; font-weight:700; margin-top:4px; color:#fff; letter-spacing:-0.02em;}
+  .slider{display:flex; align-items:center; gap:9px; margin-top:10px; font-size:11px; color:var(--muted); justify-content:space-between;}
+  input[type=range]{-webkit-appearance:none; appearance:none; width:130px; height:3px; border-radius:3px; background:rgba(255,255,255,.18); outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:0 0 8px rgba(95,208,255,.8);}
+  input[type=range]::-moz-range-thumb{width:13px; height:13px; border:none; border-radius:50%; background:var(--accent); cursor:pointer;}
+  
+  .divider{height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.08), transparent);}
+  
+  .spec-title{font-size:15px; font-weight:650; color:var(--accent); margin-bottom:2px; transition:color 0.2s;}
+  .spec-category{font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:10px; font-weight:550;}
+  .spec-desc{font-size:12px; color:#a0aec0; line-height:1.55; margin-bottom:12px; height:75px; overflow-y:auto;}
+  .telemetry-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .telemetry-item{background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); border-radius:8px; padding:8px 10px;}
+  .tel-label{font-size:9px; text-transform:uppercase; color:var(--muted); letter-spacing:0.05em; margin-bottom:3px; font-weight:550;}
+  .tel-value{font-size:13px; font-weight:600; color:#eaf2ff;}
+  
+  .section-title{font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px; font-weight:550;}
+  .tel-row{display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#cbd5ea; margin-bottom:6px;}
+  .progress-bar{width:90px; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); box-shadow:0 0 8px var(--accent); transition:width 0.4s ease;}
+  .tel-status{display:flex; align-items:center;}
+  .green-dot{display:inline-block; width:6px; height:6px; background:#00ff66; border-radius:50%; margin-left:6px; box-shadow:0 0 8px #00ff66;}
   
   .hoverlabel{position:fixed; z-index:6; pointer-events:none; transform:translate(-50%,-140%);
     background:rgba(10,14,22,.85); border:1px solid var(--line); backdrop-filter:blur(8px);
@@ -184,43 +180,60 @@
   <canvas id="scene"></canvas>
   <div class="vignette"></div>
 
-  <div id="hud">
-    <header class="hud-brand">
-      <span class="mark">◈</span>
-      <span class="wordmark">RB20</span>
-      <span class="sub">Point Cloud Study</span>
-    </header>
-
-    <section class="hud-block">
-      <div class="eyebrow">Big Numbers</div>
-      <div class="stat">
-        <div class="stat-value" id="ptsValue">1.04<span class="unit">M PTS</span></div>
-        <div class="stat-label" id="ptsLabel">Cloud Density</div>
+  <div class="dashboard-panel" id="dashboard">
+    <div class="panel-header">
+      <div class="eyebrow">Telemetry HUD &middot; Prototype</div>
+      <h1>RB20 Hybrid</h1>
+      <div class="slider">
+        <span>Cloud Density</span>
+        <input id="sizeRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0" />
       </div>
-      <div class="stat-row">
-        <div class="stat">
-          <div class="stat-value" id="dragValue">0.82<span class="unit">Cd</span></div>
-          <div class="stat-label">Drag Coefficient</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value" id="dfValue">12,450<span class="unit">N</span></div>
-          <div class="stat-label">Downforce</div>
-        </div>
-      </div>
-    </section>
-
-    <div class="hud-slider">
-      <label for="density">Cloud Density</label>
-      <input id="density" type="range" min="0" max="100" value="100">
     </div>
-
-    <section class="hud-identity">
-      <span class="marker"></span>
-      <div>
-        <div class="id-name" id="hudIdName">RED BULL RB20</div>
-        <div class="id-sub" id="hudIdSub">2024 Season · Surface-Sampled</div>
+    
+    <div class="divider"></div>
+    
+    <div class="spec-section">
+      <div class="spec-title" id="specName">RB20 Prototype</div>
+      <div class="spec-category" id="specCat">System Status: Active</div>
+      <p class="spec-desc" id="specDesc">Select any component on the car or from the legend to inspect its telemetry, aerodynamic contribution, and engineering specifications.</p>
+      
+      <div class="telemetry-grid">
+        <div class="telemetry-item">
+          <div class="tel-label">DF Contribution</div>
+          <div class="tel-value" id="valDf">100% Assembled</div>
+        </div>
+        <div class="telemetry-item">
+          <div class="tel-label">Drag Coefficient</div>
+          <div class="tel-value" id="valDrag">Cd 0.82</div>
+        </div>
+        <div class="telemetry-item">
+          <div class="tel-label">Material Tech</div>
+          <div class="tel-value" id="valMat">Carbon Prepreg</div>
+        </div>
+        <div class="telemetry-item">
+          <div class="tel-label">Thermal Status</div>
+          <div class="tel-value" id="valTemp">Telemetry OK</div>
+        </div>
       </div>
-    </section>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="live-telemetry">
+      <div class="section-title">System Status</div>
+      <div class="tel-row">
+        <span>ERS Storage Charge</span>
+        <div class="progress-bar"><div class="progress-fill" style="width: 82%"></div></div>
+      </div>
+      <div class="tel-row">
+        <span>Tire Temp (Avg)</span>
+        <span class="tel-status">104°C <span class="green-dot"></span></span>
+      </div>
+      <div class="tel-row">
+        <span>Aerodynamic Load</span>
+        <span class="tel-status">12,450 N</span>
+      </div>
+    </div>
   </div>
 
   <div class="ui top-right">

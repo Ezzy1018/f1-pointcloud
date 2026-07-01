@@ -15,6 +15,7 @@ let dragging = false;
 let lastX = 0, lastY = 0, downX = 0, downY = 0, downT = 0, moved = false;
 
 let colorMode = 'livery'; // 'livery' or 'segmented'
+let densityFraction = 1.0;
 let loadedData = null;
 let modelLoaded = false;
 let loaderStart = performance.now();
@@ -90,10 +91,6 @@ function buildModel(data) {
   st.phi = 1.12;
   st.theta = 2.35;
   
-  const densitySlider = document.getElementById('density');
-  const sliderVal = densitySlider ? parseFloat(densitySlider.value) : 100;
-  const initialOpacity = 0.2 + (sliderVal / 100) * 0.8;
-  
   data.parts.forEach(pData => {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pData.positions, 3));
@@ -107,16 +104,19 @@ function buildModel(data) {
       sizeAttenuation: true,
       vertexColors: true,
       map: circleTexture,
-      transparent: true,
+      transparent: false,
       depthWrite: true,
       depthTest: true,
-      alphaTest: 0.1,
-      blending: THREE.NormalBlending,
-      opacity: initialOpacity
+      alphaTest: 0.5,
+      blending: THREE.NormalBlending
     });
     
     const points = new THREE.Points(geo, mat);
     points.frustumCulled = false;
+    
+    const count = pData.positions.length / 3;
+    geo.setDrawRange(0, Math.floor(count * densityFraction));
+    
     scene.add(points);
     
     parts.push({
@@ -400,46 +400,45 @@ const PART_SPECS = {
   }
 };
 
-const ptsValueEl = document.getElementById('ptsValue');
-const ptsLabelEl = document.getElementById('ptsLabel');
-const dragValueEl = document.getElementById('dragValue');
-const dfValueEl = document.getElementById('dfValue');
-const hudIdNameEl = document.getElementById('hudIdName');
-const hudIdSubEl = document.getElementById('hudIdSub');
+const specNameEl = document.getElementById('specName');
+const specCatEl = document.getElementById('specCat');
+const specDescEl = document.getElementById('specDesc');
+const valDfEl = document.getElementById('valDf');
+const valDragEl = document.getElementById('valDrag');
+const valMatEl = document.getElementById('valMat');
+const valTempEl = document.getElementById('valTemp');
 
 function updateDashboard(partMode) {
-  if (!ptsValueEl) return;
-  
   if (partMode === 'all') {
-    ptsValueEl.innerHTML = '1.04<span class="unit">M PTS</span>';
-    ptsLabelEl.textContent = 'Cloud Density';
-    dragValueEl.innerHTML = '1.45<span class="unit">Cd</span>';
-    dfValueEl.innerHTML = '12,450<span class="unit">N</span>';
-    hudIdNameEl.textContent = 'EXPLODED BLUEPRINT';
-    hudIdSubEl.textContent = 'Multi-assembly dissection view';
+    specNameEl.textContent = 'Teardown Blueprint';
+    specCatEl.textContent = 'Mode: Full Assembly Exploded';
+    specCatEl.style.color = '#ff9f43';
+    specDescEl.textContent = 'All major aerodynamic, structural, power-unit, and wheel assemblies are exploded outward to show internal packaging and chassis design.';
+    valDfEl.textContent = 'Exploded';
+    valDragEl.textContent = 'Cd 1.45';
+    valMatEl.textContent = 'Multi-material';
+    valTempEl.textContent = 'Diag Active';
   } else if (partMode && partMode.def) {
     const p = partMode;
-    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: '', df: 'N/A', drag: 'N/A', mat: 'N/A', temp: 'N/A' };
-    
-    const numPts = (p.points.geometry.attributes.position.count / 1000).toFixed(0);
-    ptsValueEl.innerHTML = numPts + '<span class="unit">K PTS</span>';
-    ptsLabelEl.textContent = 'Component Points';
-    
-    const dragStr = spec.drag.replace('Cd ', '');
-    dragValueEl.innerHTML = dragStr + '<span class="unit">Cd</span>';
-    
-    const dfStr = spec.df.replace(' Total', '').replace(' Under', '').replace(' Front', '').replace(' Rear', '');
-    dfValueEl.innerHTML = dfStr;
-    
-    hudIdNameEl.textContent = p.def.name.toUpperCase();
-    hudIdSubEl.textContent = spec.cat;
+    const spec = PART_SPECS[p.def.name] || { cat: 'Component', desc: 'No details available', df: 'N/A', drag: 'N/A', mat: 'N/A', temp: 'N/A' };
+    specNameEl.textContent = p.def.name;
+    specCatEl.textContent = spec.cat;
+    const rgbStr = 'rgb(' + (p.def.color[0]*255|0) + ',' + (p.def.color[1]*255|0) + ',' + (p.def.color[2]*255|0) + ')';
+    specCatEl.style.color = rgbStr;
+    specDescEl.textContent = spec.desc;
+    valDfEl.textContent = spec.df;
+    valDragEl.textContent = spec.drag;
+    valMatEl.textContent = spec.mat;
+    valTempEl.textContent = spec.temp;
   } else {
-    ptsValueEl.innerHTML = '1.04<span class="unit">M PTS</span>';
-    ptsLabelEl.textContent = 'Cloud Density';
-    dragValueEl.innerHTML = '0.82<span class="unit">Cd</span>';
-    dfValueEl.innerHTML = '12,450<span class="unit">N</span>';
-    hudIdNameEl.textContent = 'RED BULL RB20';
-    hudIdSubEl.textContent = '2024 Season · Surface-Sampled';
+    specNameEl.textContent = 'RB20 Prototype';
+    specCatEl.textContent = 'System Status: Active';
+    specCatEl.style.color = 'var(--accent)';
+    specDescEl.textContent = 'Select any component on the car or from the legend to inspect its telemetry, aerodynamic contribution, and engineering specifications.';
+    valDfEl.textContent = '100% Assembled';
+    valDragEl.textContent = 'Cd 0.82';
+    valMatEl.textContent = 'Carbon Prepreg';
+    valTempEl.textContent = 'Telemetry OK';
   }
 }
 
@@ -476,16 +475,14 @@ toggleColorBtn.addEventListener('click', () => {
   });
 });
 
-const densitySlider = document.getElementById('density');
-if (densitySlider) {
-  densitySlider.addEventListener('input', e => {
-    const val = parseFloat(e.target.value);
-    const opacity = 0.2 + (val / 100) * 0.8;
-    parts.forEach(p => {
-      p.mat.opacity = opacity;
-    });
+document.getElementById('sizeRange').addEventListener('input', e => {
+  densityFraction = parseFloat(e.target.value);
+  parts.forEach(p => {
+    const geo = p.points.geometry;
+    const count = geo.attributes.position.count;
+    geo.setDrawRange(0, Math.floor(count * densityFraction));
   });
-}
+});
 
 // Resize
 window.addEventListener('resize', () => {
@@ -592,23 +589,12 @@ function updateLoader() {
   
   if (progress === 100 && modelLoaded) {
     loaderComplete = true;
-    if (loaderBar) loaderBar.style.width = '100%';
-    if (loaderPct) loaderPct.textContent = '100';
+    if (loaderBar) loaderBar.parentElement.style.opacity = '0';
+    if (loaderPct) loaderPct.style.opacity = '0';
     
     setTimeout(() => {
-      if (loaderBar) {
-        loaderBar.parentElement.style.transition = 'opacity 0.4s ease';
-        loaderBar.parentElement.style.opacity = '0';
-      }
-      if (loaderPct) {
-        loaderPct.parentElement.style.transition = 'opacity 0.4s ease';
-        loaderPct.parentElement.style.opacity = '0';
-      }
-      
-      setTimeout(() => {
-        if (enterBtn) enterBtn.classList.add('show');
-      }, 400);
-    }, 450);
+      if (enterBtn) enterBtn.classList.add('show');
+    }, 300);
   } else {
     requestAnimationFrame(updateLoader);
   }

@@ -107,9 +107,8 @@ function buildModel(data) {
       map: circleTexture,
       transparent: true,
       opacity: 0.28 + 0.72 * (sliderVal / 100),
-      depthWrite: true,
+      depthWrite: false,
       depthTest: true,
-      alphaTest: 0.05,
       blending: THREE.NormalBlending
     });
     
@@ -504,9 +503,8 @@ if (densitySlider) {
     parts.forEach(p => {
       p.mat.transparent = true;
       p.mat.opacity = opacity;
-      p.mat.depthWrite = true;
+      p.mat.depthWrite = false;
       p.mat.blending = THREE.NormalBlending;
-      p.mat.alphaTest = 0.05;
       p.mat.needsUpdate = true;
     });
   });

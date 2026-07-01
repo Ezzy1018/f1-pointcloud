@@ -198,30 +198,71 @@ async function rebuildPointCloud(newCount, newSize) {
 }
 
 // Custom Orbit interaction
+// Custom Orbit & Multi-touch Pinch zoom interaction
+const activePointers = new Map();
+let initialPinchDist = 0;
+let initialRadius = 0;
+
 canvas.addEventListener('pointerdown', e => {
-  dragging = true; moved = false; lastX = downX = e.clientX; lastY = downY = e.clientY; downT = performance.now();
-  canvas.setPointerCapture(e.pointerId);
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  
+  if (activePointers.size === 1) {
+    dragging = true; moved = false; lastX = downX = e.clientX; lastY = downY = e.clientY; downT = performance.now();
+    canvas.setPointerCapture(e.pointerId);
+  } else if (activePointers.size === 2) {
+    dragging = false;
+    const pts = [...activePointers.values()];
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    initialPinchDist = Math.sqrt(dx * dx + dy * dy);
+    initialRadius = st.radius;
+  }
 });
 
 canvas.addEventListener('pointermove', e => {
-  if (dragging) {
+  if (!activePointers.has(e.pointerId)) return;
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  
+  if (activePointers.size === 1 && dragging) {
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
     if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) > 6) moved = true;
     st.theta -= dx * 0.005; st.phi -= dy * 0.005;
     st.phi = Math.max(0.15, Math.min(1.48, st.phi));
-  } else {
+  } else if (activePointers.size === 2) {
+    const pts = [...activePointers.values()];
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    const newDist = Math.sqrt(dx * dx + dy * dy);
+    if (initialPinchDist > 0 && newDist > 0) {
+      const scale = initialPinchDist / newDist;
+      st.radius = Math.max(modelSize.z * 0.6, Math.min(modelSize.z * 3.5, initialRadius * scale));
+    }
+  } else if (activePointers.size === 0) {
     hoverPick(e.clientX, e.clientY);
   }
 });
 
 function endDrag(e) {
-  if (!dragging) return; dragging = false;
-  const quick = performance.now() - downT < 400;
-  if (!moved && quick) clickPick(e.clientX, e.clientY);
+  if (activePointers.has(e.pointerId)) {
+    activePointers.delete(e.pointerId);
+  }
+  if (activePointers.size < 2) initialPinchDist = 0;
+  
+  if (activePointers.size === 0) {
+    if (dragging) {
+      dragging = false;
+      const quick = performance.now() - downT < 400;
+      if (!moved && quick) clickPick(e.clientX, e.clientY);
+    }
+  }
 }
 canvas.addEventListener('pointerup', endDrag);
-canvas.addEventListener('pointercancel', () => { dragging = false; });
+canvas.addEventListener('pointercancel', e => {
+  activePointers.delete(e.pointerId);
+  if (activePointers.size < 2) initialPinchDist = 0;
+  if (activePointers.size === 0) dragging = false;
+});
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
   st.radius = Math.max(modelSize.z * 0.6, Math.min(modelSize.z * 3.5, st.radius + e.deltaY * 0.012));
@@ -591,6 +632,35 @@ if (closeBtn && navDrawer) {
   closeBtn.addEventListener('click', () => {
     navDrawer.classList.remove('open');
   });
+}
+
+// Mobile Telemetry sliding panel open/close
+const infoBtn = document.getElementById('infoBtn');
+const hudCloseBtn = document.getElementById('hudCloseBtn');
+const hud = document.getElementById('hud');
+
+if (infoBtn && hud) {
+  infoBtn.addEventListener('click', () => {
+    hud.classList.toggle('open');
+    infoBtn.classList.toggle('active', hud.classList.contains('open'));
+  });
+}
+if (hudCloseBtn && hud) {
+  hudCloseBtn.addEventListener('click', () => {
+    hud.classList.remove('open');
+    if (infoBtn) infoBtn.classList.remove('active');
+  });
+}
+
+// Stop touch/mouse events from propagating to canvas when interacting with drawers
+const stopPropagation = (e) => e.stopPropagation();
+if (navDrawer) {
+  navDrawer.addEventListener('touchmove', stopPropagation, { passive: true });
+  navDrawer.addEventListener('wheel', stopPropagation, { passive: true });
+}
+if (hud) {
+  hud.addEventListener('touchmove', stopPropagation, { passive: true });
+  hud.addEventListener('wheel', stopPropagation, { passive: true });
 }
 
 // Resize

@@ -335,6 +335,82 @@
     color: #fff;
   }
 
+  /* Info Button (Mobile Telemetry Trigger) */
+  .info-btn {
+    display: none;
+    position: fixed;
+    bottom: 26px;
+    left: 28px;
+    z-index: 99;
+    appearance: none;
+    outline: none;
+    border: 1px solid var(--line);
+    background: rgba(10, 14, 22, 0.8);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .info-btn:hover {
+    border-color: var(--accent);
+    background: rgba(95, 208, 255, 0.1);
+  }
+  .info-btn.active {
+    background: rgba(95, 208, 255, 0.15);
+    border-color: var(--accent);
+  }
+
+  /* Mobile Telemetry Header inside HUD drawer */
+  .hud-mobile-header {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 20px;
+  }
+  .hud-mobile-header span {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  /* Shift portrait-notice to the upper screen area to avoid overlaps */
+  .portrait-notice {
+    display: none;
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(10, 14, 22, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 10px 18px;
+    border-radius: 99px;
+    font-size: 11px;
+    color: #cbd5ea;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    font-weight: 550;
+  }
+
   /* Responsive styling overrides for Mobile viewports (width < 960px or height < 500px) */
   @media (max-width: 959px) or (max-height: 500px) {
     .ui.top-right {
@@ -343,83 +419,77 @@
     .legend {
       display: none !important;
     }
+    .ui.bottom-left {
+      display: none !important;
+    }
+    
     .menu-btn {
+      display: flex;
+    }
+    .info-btn {
       display: flex;
     }
     
     #hud {
-      top: auto;
-      bottom: 0;
-      left: 0;
-      width: 100%;
+      position: fixed;
+      top: 0;
+      left: -320px; /* sliding panel hidden on left */
+      width: 280px;
+      height: 100vh;
       box-sizing: border-box;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(10, 14, 22, 0.88);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-left: none;
+      border-top: none;
+      background: rgba(10, 14, 22, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      padding: 12px 24px 22px 24px;
+      padding: 24px 20px;
+      z-index: 104; /* just underneath controls drawer */
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+      gap: 18px;
+      box-shadow: 10px 0 35px rgba(0,0,0,0.5);
+      transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    #hud.open {
+      left: 0;
+    }
+    
+    .hud-mobile-header {
+      display: flex;
     }
     .hud-brand {
       display: none !important;
     }
-    .hud-identity {
-      order: -1;
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
-    }
     .hud-slider {
       display: none !important;
     }
+    .hud-identity {
+      margin-top: auto; /* Push metadata to bottom of drawer */
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
     
-    .hud-block {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 0;
-    }
-    .hud-block .eyebrow {
-      display: none !important;
-    }
     .stat {
-      margin-bottom: 0;
+      margin-bottom: 12px;
     }
     .stat-value {
-      font-size: 24px;
-    }
-    .stat-value .unit {
-      font-size: 11px;
-    }
-    .stat-label {
-      margin-top: 2px;
-      font-size: 8.5px;
-    }
-    .stat-row {
-      display: flex;
-      gap: 22px;
-      margin-bottom: 0;
+      font-size: 34px;
     }
     .stat-row .stat-value {
-      font-size: 20px;
-    }
-    
-    .ui.bottom-left {
-      display: none !important;
+      font-size: 26px;
     }
   }
 
-  /* Safe Area bounds support for iPhone notch */
-  @supports (padding: env(safe-area-inset-bottom)) {
+  /* Safe Area margins support for notch devices in landscape */
+  @supports (margin: env(safe-area-inset-left)) {
     @media (max-width: 959px) or (max-height: 500px) {
-      #hud {
-        padding-bottom: calc(14px + env(safe-area-inset-bottom));
-        padding-left: calc(24px + env(safe-area-inset-left));
-        padding-right: calc(24px + env(safe-area-inset-right));
+      .info-btn {
+        left: calc(28px + env(safe-area-inset-left));
+        bottom: calc(26px + env(safe-area-inset-bottom));
+      }
+      .menu-btn {
+        right: calc(28px + env(safe-area-inset-right));
       }
     }
   }
@@ -436,6 +506,10 @@
   <div class="vignette"></div>
 
   <div id="hud">
+    <div class="hud-mobile-header">
+      <span>Telemetry HUD</span>
+      <button class="close-btn" id="hudCloseBtn">✕</button>
+    </div>
     <header class="hud-brand">
       <span class="mark">◈</span>
       <span class="wordmark">RB20</span>
@@ -494,6 +568,10 @@
     <div class="loader__bar"><span id="loaderBar" style="width: 0%"></span></div>
     <button id="enterBtn" class="loader__enter">Enter</button>
   </div>
+
+  <button class="info-btn" id="infoBtn">
+    <span class="icon">ⓘ</span> Telemetry
+  </button>
 
   <button class="menu-btn" id="menuBtn">
     <span class="icon">☰</span> Controls
